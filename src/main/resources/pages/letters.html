@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Letters</title>
+  <script type="text/javascript">
+    const getTime = (timestamp) => {
+      let date = new Date(timestamp);
+      let hours = date.getHours();
+      let minutes = "0" + date.getMinutes();
+      let seconds = "0" + date.getSeconds();
+      return hours + ':' + minutes.substr(-2) + ':' + seconds.substr(-2);
+    }
+    const addLine = (e) => {
+      let data = JSON.parse(e.data);
+      document.getElementById('table-body-letter').innerHTML +=
+        `<tr>
+         <td>` + data.id + `</td>
+         <td>` + getTime(data.created) + `</td>
+         <td>` + data.letter + `</td>
+         </tr>`;
+    };
+
+    window.onload = () => {
+      let letters = new EventSource('/letters');
+      letters.onmessage = (e) => addLine(e);
+
+      document.getElementById('button-stop').onclick = () => {
+        letters.close();
+      };
+
+      document.getElementById('button-new').onclick = () => {
+        letters.close();
+        letters = new EventSource('/letters');
+        letters.onmessage = (e) => addLine(e);
+      };
+      let current = new EventSource('/letters');
+      current.onmessage = (e) => {
+        let data = JSON.parse(e.data);
+        document.getElementById('table-body-current').innerHTML =
+          `<tr>
+           <td>` + data.id + `</td>
+           <td>` + getTime(data.created) + `</td>
+           <td>` + data.letter + `</td>
+           </tr>`;
+      };
+      let last = new EventSource('/last');
+      last.onmessage = (e) => {
+        let data = JSON.parse(e.data);
+        document.getElementById('table-body-last').innerHTML =
+          `<tr>
+           <td>` + data.id + `</td>
+           <td>` + getTime(data.created) + `</td>
+           <td>` + data.letter + `</td>
+           </tr>`;
+      };
+    }
+  </script>
+</head>
+
+<body>
+  <h1>Current letter</h1>
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Created</th>
+        <th>Letter</th>
+      </tr>
+    </thead>
+    <tbody id="table-body-current">
+    </tbody>
+  </table>
+  <h1>Last letter</h1>
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Created</th>
+        <th>Letter</th>
+      </tr>
+    </thead>
+    <tbody id="table-body-last">
+    </tbody>
+  </table>
+  <h1>Letters</h1>
+  <button id="button-new">New</button>
+  <button id="button-stop">Stop</button>
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Created</th>
+        <th>Letter</th>
+      </tr>
+    </thead>
+    <tbody id="table-body-letter">
+    </tbody>
+  </table>
+</body>
+
+</html>
